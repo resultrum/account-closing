@@ -60,8 +60,19 @@ class AccountInvoice(models.Model):
                 # reverse
                 reverse_obj = self.env['account.move.reverse'].with_context(
                     active_id=accrual_move.id, active_ids=accrual_move.ids)
-                reverse_wizard = reverse_obj.create({'date': invoice_date})
+                reverse_wizard = reverse_obj.create(
+                    self._get_reverse_accrual_wizard_values()
+                )
                 reverse_wizard.action_reverse()
+
+    @api.multi
+    def _get_reverse_accrual_wizard_values(self):
+        self.ensure_one()
+        date = self.date or self.date_invoice
+        invoice_date = fields.Date.from_string(date)
+        return {
+            'date': invoice_date,
+        }
 
     @api.multi
     def invoice_validate(self):
